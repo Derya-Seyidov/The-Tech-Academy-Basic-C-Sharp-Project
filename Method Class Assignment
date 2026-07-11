@@ -1,0 +1,44 @@
+using System;
+
+// Create a namespace to contain the program.
+namespace MethodParametersAssignment
+{
+    // Create a class that contains the required method.
+    class MathOperations
+    {
+        // Create a void method that accepts two integer parameters.
+        public void PerformOperation(int firstNumber, int secondNumber)
+        {
+            // Perform a math operation on the first integer.
+            int result = firstNumber * 2;
+
+            // Display the result of the math operation.
+            Console.WriteLine("First number after multiplication by 2: " + result);
+
+            // Display the second integer.
+            Console.WriteLine("Second number: " + secondNumber);
+        }
+    }
+
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            // Create (instantiate) an object of the MathOperations class.
+            MathOperations math = new MathOperations();
+
+            // Call the method by passing two integers in order.
+            math.PerformOperation(10, 20);
+
+            // Display a blank line to separate the output.
+            Console.WriteLine();
+
+            // Call the same method again using named parameters.
+            math.PerformOperation(firstNumber: 15, secondNumber: 30);
+
+            // Pause the program so the console window remains open.
+            Console.WriteLine("\nPress any key to exit...");
+            Console.ReadKey();
+        }
+    }
+}
