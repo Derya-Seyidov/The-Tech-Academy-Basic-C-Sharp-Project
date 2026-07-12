@@ -1,0 +1,55 @@
+using System;
+// Defines an interface named IQuittable
+// Any class that implements this interface must include a Quit() method.
+public interface IQuittable
+{
+    // Declares a method named Quit that does not return a value.
+    void Quit();
+}
+// Defines the Person class.
+public class Person
+{
+    // Property to store the person's first name.
+    public string FirstName { get; set; }
+    // Property to store the person's last name.
+    public string LastName { get; set; }
+    // Method that displays the person's full name.
+    public void SayName()
+    {
+        Console.WriteLine("Name: " + FirstName + " " + LastName);
+    }
+}
+// Employee inherits from the Person class
+// and implements the IQuittable interface.
+public class Employee : Person, IQuittable
+{
+    // Property to store the employee ID.
+    public int Id { get; set; }
+    // Implements the Quit() method required by the interface.
+    public void Quit()
+    {
+        // Displays a message indicating that the employee has quit.
+        Console.WriteLine(FirstName + " " + LastName + " has quit the company.");
+    }
+}
+// Main program class.
+class Program
+{
+    // Program execution starts here.
+    static void Main(string[] args)
+    {
+        // Creates an Employee object but stores it as an IQuittable type.
+        // This demonstrates polymorphism because Employee implements IQuittable.
+        IQuittable employee = new Employee()
+        {
+            // Assigns values using object initialization.
+            FirstName = "John",
+            LastName = "Smith",
+            Id = 101
+        };
+        // Calls the Quit() method through the interface reference.
+        employee.Quit();
+        // Keeps the console window open until the user presses Enter.
+        Console.ReadLine();
+    }
+}
