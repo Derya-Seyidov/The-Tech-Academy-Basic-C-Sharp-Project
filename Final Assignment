@@ -1,0 +1,56 @@
+using System;
+using System.Linq;
+
+namespace StudentCodeFirst
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+
+            using (var db = new StudentContext())
+            {
+
+                // Create and save a new student
+                Console.WriteLine("Enter student name:");
+
+                string name = Console.ReadLine();
+
+
+                var student = new Student
+                {
+                    Name = name
+                };
+
+
+                db.Students.Add(student);
+
+                db.SaveChanges();
+
+
+
+                Console.WriteLine("Student saved successfully!");
+
+
+
+                // Display students
+
+                var students = db.Students.ToList();
+
+
+                Console.WriteLine("\nStudents in Database:");
+
+                foreach(var item in students)
+                {
+                    Console.WriteLine(item.Id + " - " + item.Name);
+                }
+
+
+            }
+
+
+            Console.ReadLine();
+
+        }
+    }
+}
