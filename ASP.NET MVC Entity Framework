@@ -1,0 +1,482 @@
+// ============================================
+// File: Models/Insuree.cs
+// ============================================
+
+using System;
+using System.ComponentModel.DataAnnotations;
+
+namespace CarInsurance.Models
+{
+    public class Insuree
+    {
+        public int Id { get; set; }
+
+        [Required]
+        public string FirstName { get; set; }
+
+        [Required]
+        public string LastName { get; set; }
+
+        [Required]
+        public string EmailAddress { get; set; }
+
+        [Required]
+        public DateTime DateOfBirth { get; set; }
+
+        [Required]
+        public int CarYear { get; set; }
+
+        [Required]
+        public string CarMake { get; set; }
+
+        [Required]
+        public string CarModel { get; set; }
+
+        public bool DUI { get; set; }
+
+        public int SpeedingTickets { get; set; }
+
+        public string CoverageType { get; set; }
+
+        public decimal Quote { get; set; }
+    }
+}
+
+
+
+
+// ============================================
+// File: Data/ApplicationDbContext.cs
+// ============================================
+
+using Microsoft.EntityFrameworkCore;
+using CarInsurance.Models;
+
+namespace CarInsurance.Data
+{
+    public class ApplicationDbContext : DbContext
+    {
+
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+            : base(options)
+        {
+
+        }
+
+
+        public DbSet<Insuree> Insurees { get; set; }
+
+    }
+}
+
+
+
+
+
+// ============================================
+// File: Program.cs
+// ============================================
+
+using Microsoft.EntityFrameworkCore;
+using CarInsurance.Data;
+
+
+var builder = WebApplication.CreateBuilder(args);
+
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+options.UseSqlServer(
+builder.Configuration.GetConnectionString("DefaultConnection")));
+
+
+
+builder.Services.AddControllersWithViews();
+
+
+
+var app = builder.Build();
+
+
+
+app.UseStaticFiles();
+
+app.UseRouting();
+
+
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Insuree}/{action=Index}/{id?}"
+);
+
+
+
+app.Run();
+
+
+
+
+
+
+// ============================================
+// File: appsettings.json
+// ============================================
+
+/*
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=CarInsurance;Trusted_Connection=True;"
+  },
+
+  "AllowedHosts": "*"
+}
+*/
+
+
+
+
+
+
+// ============================================
+// File: Controllers/InsureeController.cs
+// ============================================
+
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using CarInsurance.Data;
+using CarInsurance.Models;
+
+
+namespace CarInsurance.Controllers
+{
+
+    public class InsureeController : Controller
+    {
+
+        private readonly ApplicationDbContext db;
+
+
+        public InsureeController(ApplicationDbContext context)
+        {
+            db = context;
+        }
+
+
+
+        public async Task<IActionResult> Index()
+        {
+            return View(await db.Insurees.ToListAsync());
+        }
+
+
+
+
+
+        public IActionResult Create()
+        {
+            return View();
+        }
+
+
+
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(Insuree insuree)
+        {
+
+            decimal quote = 50;
+
+
+
+            int age = DateTime.Now.Year - insuree.DateOfBirth.Year;
+
+
+
+            if(age <= 18)
+            {
+                quote += 100;
+            }
+            else if(age >= 19 && age <=25)
+            {
+                quote += 50;
+            }
+            else
+            {
+                quote += 25;
+            }
+
+
+
+
+            if(insuree.CarYear < 2000)
+            {
+                quote +=25;
+            }
+
+
+
+            if(insuree.CarYear > 2015)
+            {
+                quote +=25;
+            }
+
+
+
+
+            if(insuree.CarMake.ToLower() == "porsche")
+            {
+                quote +=25;
+
+
+                if(insuree.CarModel.ToLower() == "911 carrera")
+                {
+                    quote +=25;
+                }
+            }
+
+
+
+
+            quote += insuree.SpeedingTickets * 10;
+
+
+
+
+            if(insuree.DUI)
+            {
+                quote *= 1.25m;
+            }
+
+
+
+
+            if(insuree.CoverageType == "Full")
+            {
+                quote *= 1.50m;
+            }
+
+
+
+
+            insuree.Quote = quote;
+
+
+
+            db.Insurees.Add(insuree);
+
+
+            await db.SaveChangesAsync();
+
+
+
+            return RedirectToAction(nameof(Index));
+
+        }
+
+
+
+
+
+
+
+        public async Task<IActionResult> Details(int id)
+        {
+            var insuree = await db.Insurees.FindAsync(id);
+
+            return View(insuree);
+        }
+
+
+
+
+
+
+
+        public async Task<IActionResult> Delete(int id)
+        {
+            var insuree = await db.Insurees.FindAsync(id);
+
+            return View(insuree);
+        }
+
+
+
+
+
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+
+            var insuree = await db.Insurees.FindAsync(id);
+
+
+            db.Insurees.Remove(insuree);
+
+
+            await db.SaveChangesAsync();
+
+
+
+            return RedirectToAction(nameof(Index));
+
+        }
+
+
+
+
+
+
+        // ADMIN VIEW
+
+        public async Task<IActionResult> Admin()
+        {
+
+            var quotes = await db.Insurees.ToListAsync();
+
+
+            return View(quotes);
+
+        }
+
+
+    }
+
+}
+
+
+
+
+
+
+
+// ============================================
+// File: Views/Insuree/Create.cshtml
+// ============================================
+
+/*
+
+@model CarInsurance.Models.Insuree
+
+
+<h1>Create Insurance Quote</h1>
+
+
+<form asp-action="Create">
+
+
+<label>First Name</label>
+<input asp-for="FirstName" />
+
+
+<label>Last Name</label>
+<input asp-for="LastName" />
+
+
+<label>Email Address</label>
+<input asp-for="EmailAddress" />
+
+
+<label>Date Of Birth</label>
+<input asp-for="DateOfBirth" type="date" />
+
+
+<label>Car Year</label>
+<input asp-for="CarYear" />
+
+
+<label>Car Make</label>
+<input asp-for="CarMake" />
+
+
+<label>Car Model</label>
+<input asp-for="CarModel" />
+
+
+<label>DUI</label>
+<input asp-for="DUI" />
+
+
+<label>Speeding Tickets</label>
+<input asp-for="SpeedingTickets" />
+
+
+
+<label>Coverage Type</label>
+
+<select asp-for="CoverageType">
+
+<option>Basic</option>
+
+<option>Full</option>
+
+</select>
+
+
+
+<button type="submit">
+Submit
+</button>
+
+
+</form>
+
+*/
+
+
+
+
+
+
+
+// ============================================
+// File: Views/Insuree/Admin.cshtml
+// ============================================
+
+/*
+
+@model IEnumerable<CarInsurance.Models.Insuree>
+
+
+<h1>Admin Quote List</h1>
+
+
+<table border="1">
+
+<tr>
+
+<th>First Name</th>
+
+<th>Last Name</th>
+
+<th>Email Address</th>
+
+<th>Quote</th>
+
+</tr>
+
+
+
+@foreach(var item in Model)
+{
+
+<tr>
+
+<td>@item.FirstName</td>
+
+<td>@item.LastName</td>
+
+<td>@item.EmailAddress</td>
+
+<td>@item.Quote</td>
+
+</tr>
+
+}
+
+
+</table>
+
+*/
